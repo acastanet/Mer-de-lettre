@@ -63,14 +63,14 @@ export const WaveCanvas: React.FC = () => {
     let animationFrameId: number;
 
     const render = () => {
-      time += 0.005; // Much slower time
+      time += 0.015;
       
       // Clear with opacity for motion blur
       ctx.fillStyle = 'rgba(232, 227, 215, 0.35)'; // Old paper background
       ctx.fillRect(0, 0, width, height);
 
       // Move wave
-      vortexX -= 1.5; // Much slower wave movement
+      vortexX -= 3;
       if (vortexX < -800) {
         vortexX = width + 800;
         vortexY = baseSeaLevel - 50 - Math.random() * 150;
@@ -114,37 +114,27 @@ export const WaveCanvas: React.FC = () => {
           // Depth attenuation: Deep particles are less affected by the wave
           // This keeps the bottom of the screen filled
           const depth = Math.max(0, (p.baseY - baseSeaLevel) / (height - baseSeaLevel));
-          
-          // Stronger cutoff: Bottom 30% of particles are completely immune to the wave
-          let depthFactor = 1;
-          if (depth > 0.7) {
-            depthFactor = 0;
-          } else {
-            // Linear falloff for the rest
-            depthFactor = 1 - (depth / 0.7);
-          }
+          const depthFactor = 1 - (depth * 0.8); // Up to 80% reduction for deepest particles
           
           force *= depthFactor;
 
           // Add turbulence/noise to break up clumps
-          if (force > 0.01) {
-             p.vx += (Math.random() - 0.5) * force * 2.0;
-             p.vy += (Math.random() - 0.5) * force * 2.0;
+          p.vx += (Math.random() - 0.5) * force * 2.0;
+          p.vy += (Math.random() - 0.5) * force * 2.0;
 
-            if (dx < 0 && dy > -waveRadius * 0.2) {
-              // Front face: sucked UP and LEFT
-              p.vy -= force * 6.0;
-              p.vx -= force * 3.5;
-            } else if (dy <= -waveRadius * 0.2) {
-              // Crest: thrown LEFT and DOWN (the breaking curl)
-              p.vx -= force * 9.0 + Math.random() * 3;
-              p.vy += force * 6.0 + (Math.random() - 0.5) * 5;
-              p.foamLife = 1.0;
-            } else if (dx > 0) {
-              // Back face: slide DOWN and RIGHT
-              p.vy += force * 2.5;
-              p.vx += force * 1.5;
-            }
+          if (dx < 0 && dy > -waveRadius * 0.2) {
+            // Front face: sucked UP and LEFT
+            p.vy -= force * 6.0;
+            p.vx -= force * 3.5;
+          } else if (dy <= -waveRadius * 0.2) {
+            // Crest: thrown LEFT and DOWN (the breaking curl)
+            p.vx -= force * 9.0 + Math.random() * 3;
+            p.vy += force * 6.0 + (Math.random() - 0.5) * 5;
+            p.foamLife = 1.0;
+          } else if (dx > 0) {
+            // Back face: slide DOWN and RIGHT
+            p.vy += force * 2.5;
+            p.vx += force * 1.5;
           }
         }
 
